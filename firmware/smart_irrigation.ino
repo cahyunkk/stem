@@ -5,6 +5,13 @@
  *
  * Semua pekerjaan berkala memakai millis(). Operasi Firebase memakai API async;
  * tidak ada while untuk menunggu WiFi/Firebase di setup() maupun loop().
+ *
+ * Wiring ringkas (semua GND modul dan ESP32 harus common):
+ * - Soil AO -> GPIO34; sensor dianjurkan 3,3V agar AO tidak melebihi ADC.
+ * - DHT11 DATA -> GPIO4 + pull-up 4,7k-10k ke 3,3V.
+ * - Relay IN -> GPIO26 (bukan GPIO2); relay memakai catu sesuai modulnya.
+ * - LCD SDA/SCL -> GPIO21/22; gunakan level shifter bila backpack LCD 5V.
+ * Pompa/motor WAJIB lewat kontak relay dan catu sendiri, bukan dari pin ESP32.
  */
 
 #define ENABLE_USER_AUTH
@@ -78,6 +85,7 @@ unsigned long lastWifiAttemptMs = 0;
 unsigned long lastSafetyRetryMs = 0;
 bool telemetryInFlight = false;
 bool controlStreamStarted = false;
+bool wifiWasConnected = false;
 
 enum HistoryState { HISTORY_IDLE, HISTORY_PUSHING, HISTORY_LISTING, HISTORY_SELECTING, HISTORY_PRUNING };
 HistoryState historyState = HISTORY_IDLE;
@@ -243,7 +251,17 @@ void triggerManualSafety(const char *reason) {
 }
 
 void maintainWifi(unsigned long now) {
-  if (WiFi.status() == WL_CONNECTED) return;
+  if (WiFi.status() == WL_CONNECTED) {
+    if (!wifiWasConnected) {
+      wifiWasConnected = true;
+      Serial.printf("WiFi tersambung. IP: %s, RSSI: %d dBm\n",
+                    WiFi.localIP().toString().c_str(), WiFi.RSSI());
+      Serial.printf("Debug JSON lokal: http://%s/data\n",
+                    WiFi.localIP().toString().c_str());
+    }
+    return;
+  }
+  wifiWasConnected = false;
   if (now - lastWifiAttemptMs < WIFI_RETRY_INTERVAL_MS) return;
 
   lastWifiAttemptMs = now;
