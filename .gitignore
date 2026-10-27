@@ -1,0 +1,25 @@
+# Kredensial lokal — JANGAN pernah commit berkas ini
+firmware/secrets.h
+**/secrets.h
+!firmware/secrets.example.h
+.env
+.env.*
+!.env.example
+
+# Arduino / PlatformIO
+.pio/
+build/
+*.hex
+*.bin
+*.elf
+
+# Firebase / Node / editor
+.firebaserc
+web/.firebaserc
+firebase-debug.log*
+firestore-debug.log*
+ui-debug.log*
+node_modules/
+.DS_Store
+.vscode/
+.idea/

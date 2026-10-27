@@ -1,0 +1,94 @@
+{
+  "rules": {
+    ".read": false,
+    ".write": false,
+
+    "device": {
+      ".read": true,
+      ".write": "auth != null && auth.uid === 'GANTI_UID_PERANGKAT'",
+      ".validate": "newData.hasChildren(['soil', 'soilRaw', 'pump', 'mode', 'wifiRssi', 'uptime', 'lastUpdate'])",
+      "soil": {
+        ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 100"
+      },
+      "soilRaw": {
+        ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 4095"
+      },
+      "temperature": {
+        ".validate": "newData.isNumber() && newData.val() >= -40 && newData.val() <= 80"
+      },
+      "humidity": {
+        ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 100"
+      },
+      "pump": {
+        ".validate": "newData.isBoolean()"
+      },
+      "mode": {
+        ".validate": "newData.isString() && (newData.val() === 'auto' || newData.val() === 'manual')"
+      },
+      "wifiRssi": {
+        ".validate": "newData.isNumber() && newData.val() >= -150 && newData.val() <= 0"
+      },
+      "uptime": {
+        ".validate": "newData.isNumber() && newData.val() >= 0"
+      },
+      "lastUpdate": {
+        ".validate": "newData.isNumber() && newData.val() > 0 && newData.val() <= now + 10000"
+      },
+      "$other": {
+        ".validate": false
+      }
+    },
+
+    "history": {
+      ".read": true,
+      "$entry": {
+        ".write": "auth != null && auth.uid === 'GANTI_UID_PERANGKAT' && ((!data.exists() && newData.exists()) || (data.exists() && !newData.exists()))",
+        ".validate": "newData.hasChildren(['soil', 'soilRaw', 'pump', 'mode', 'timestamp'])",
+        "soil": {
+          ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 100"
+        },
+        "soilRaw": {
+          ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 4095"
+        },
+        "temperature": {
+          ".validate": "newData.isNumber() && newData.val() >= -40 && newData.val() <= 80"
+        },
+        "humidity": {
+          ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 100"
+        },
+        "pump": {
+          ".validate": "newData.isBoolean()"
+        },
+        "mode": {
+          ".validate": "newData.isString() && (newData.val() === 'auto' || newData.val() === 'manual')"
+        },
+        "timestamp": {
+          ".validate": "newData.isNumber() && newData.val() > 0 && newData.val() <= now + 10000"
+        },
+        "$other": {
+          ".validate": false
+        }
+      }
+    },
+
+    "control": {
+      ".read": "auth != null && (auth.uid === 'GANTI_UID_PEMILIK' || auth.uid === 'GANTI_UID_PERANGKAT')",
+      ".validate": "newData.hasChildren(['mode', 'pumpCommand', 'updatedAt'])",
+      "mode": {
+        ".write": "auth != null && auth.uid === 'GANTI_UID_PEMILIK'",
+        ".validate": "newData.isString() && (newData.val() === 'auto' || newData.val() === 'manual')"
+      },
+      "pumpCommand": {
+        ".write": "auth != null && (auth.uid === 'GANTI_UID_PEMILIK' || (auth.uid === 'GANTI_UID_PERANGKAT' && data.val() === 'on' && newData.val() === 'off'))",
+        ".validate": "newData.isString() && (newData.val() === 'on' || newData.val() === 'off')"
+      },
+      "updatedAt": {
+        ".write": "auth != null && auth.uid === 'GANTI_UID_PEMILIK'",
+        ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= now + 10000"
+      },
+      "$other": {
+        ".validate": false
+      }
+    }
+  }
+}

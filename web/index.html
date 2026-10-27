@@ -1,0 +1,224 @@
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="Pantau kelembapan tanah, suhu, dan pompa Smart Irrigation berbasis ESP32 secara realtime."
+    />
+    <meta name="theme-color" media="(prefers-color-scheme: light)" content="#176b3a" />
+    <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#10251a" />
+    <title>Tumbuh — Smart Irrigation</title>
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%8C%B1%3C/text%3E%3C/svg%3E" />
+    <link rel="stylesheet" href="./style.css" />
+    <script defer src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+    <script type="module" src="./app.js"></script>
+  </head>
+  <body>
+    <a class="skip-link" href="#main-content">Lewati ke konten</a>
+
+    <header class="site-header">
+      <div class="container header-inner">
+        <a class="brand" href="./" aria-label="Tumbuh, beranda">
+          <span class="brand-mark" aria-hidden="true">
+            <svg viewBox="0 0 32 32" fill="none">
+              <path d="M16 27V14" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" />
+              <path d="M16 17C8 17 5 12 5 5c7 0 12 3 12 10" fill="currentColor" opacity=".9" />
+              <path d="M16 21c8 0 11-5 11-12-7 0-12 3-12 10" fill="currentColor" opacity=".65" />
+            </svg>
+          </span>
+          <span><strong>Tumbuh</strong><small>Smart Irrigation</small></span>
+        </a>
+        <div class="header-actions">
+          <span id="demo-badge" class="badge badge-demo" hidden>Mode demo</span>
+          <button id="auth-header-button" class="button button-ghost button-small" type="button">
+            Masuk
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <main id="main-content" class="container main-content">
+      <section id="auth-gate" class="auth-gate card" hidden>
+        <span class="gate-icon" aria-hidden="true">🔐</span>
+        <h1>Monitoring dilindungi</h1>
+        <p>Masuk dengan akun pemilik untuk melihat data kebun dan mengontrol pompa.</p>
+        <button id="gate-login-button" class="button button-primary" type="button">Masuk ke akun</button>
+      </section>
+
+      <div id="dashboard-content">
+        <section class="overview" aria-labelledby="overview-title">
+          <div class="overview-heading">
+            <div>
+              <p class="eyebrow">RINGKASAN KEBUN</p>
+              <h1 id="overview-title">Kondisi tanaman hari ini</h1>
+            </div>
+            <div id="device-status" class="device-status is-offline" role="status">
+              <span class="status-dot" aria-hidden="true"></span>
+              <span id="device-status-text">Menghubungkan</span>
+            </div>
+          </div>
+          <div class="update-line">
+            <span id="last-update">Menunggu data pertama dari ESP32…</span>
+            <span class="separator" aria-hidden="true">•</span>
+            <span>Mode <strong id="current-mode">—</strong></span>
+          </div>
+        </section>
+
+        <section class="sensor-grid" aria-label="Data sensor realtime">
+          <article class="card sensor-card soil-card">
+            <div class="card-heading">
+              <span class="sensor-icon icon-soil" aria-hidden="true">🌱</span>
+              <span class="sensor-label">Kelembapan tanah</span>
+              <span id="soil-condition" class="mini-badge">—</span>
+            </div>
+            <div class="sensor-value"><span id="soil-value">—</span><span class="unit">%</span></div>
+            <div
+              id="soil-progress"
+              class="progress-track"
+              role="progressbar"
+              aria-label="Kelembapan tanah"
+              aria-valuemin="0"
+              aria-valuemax="100"
+              aria-valuenow="0"
+            >
+              <div id="soil-progress-bar" class="progress-fill"></div>
+            </div>
+            <div class="threshold-labels"><span>Pompa ON ≤45%</span><span>OFF ≥65%</span></div>
+            <p class="sensor-footnote">Nilai mentah ADC: <strong id="soil-raw">—</strong></p>
+          </article>
+
+          <article class="card sensor-card">
+            <div class="card-heading">
+              <span class="sensor-icon icon-temperature" aria-hidden="true">🌡️</span>
+              <span class="sensor-label">Suhu udara</span>
+            </div>
+            <div class="sensor-value"><span id="temperature-value">—</span><span class="unit">°C</span></div>
+            <p class="sensor-footnote">Terukur oleh DHT11</p>
+          </article>
+
+          <article class="card sensor-card">
+            <div class="card-heading">
+              <span class="sensor-icon icon-humidity" aria-hidden="true">💧</span>
+              <span class="sensor-label">Kelembapan udara</span>
+            </div>
+            <div class="sensor-value"><span id="humidity-value">—</span><span class="unit">%</span></div>
+            <p class="sensor-footnote">Kelembapan relatif (RH)</p>
+          </article>
+
+          <article id="pump-card" class="card sensor-card pump-card">
+            <div class="pump-summary">
+              <div class="card-heading">
+                <span class="sensor-icon icon-pump" aria-hidden="true">🚿</span>
+                <span class="sensor-label">Status pompa</span>
+              </div>
+              <div class="pump-value-row">
+                <strong id="pump-value">—</strong>
+                <span id="pump-indicator" class="pump-indicator">Menunggu</span>
+              </div>
+            </div>
+            <div class="device-meta">
+              <span>Sinyal <strong id="wifi-rssi">—</strong></span>
+              <span>Uptime <strong id="uptime">—</strong></span>
+            </div>
+          </article>
+        </section>
+
+        <section class="card chart-card" aria-labelledby="history-title">
+          <div class="section-heading chart-heading">
+            <div>
+              <p class="eyebrow">RIWAYAT SENSOR</p>
+              <h2 id="history-title">Perubahan dari waktu ke waktu</h2>
+            </div>
+            <div class="range-picker" role="group" aria-label="Rentang grafik">
+              <button class="range-button" type="button" data-range="30">30 mnt</button>
+              <button class="range-button is-active" type="button" data-range="60" aria-pressed="true">1 jam</button>
+              <button class="range-button" type="button" data-range="180">3 jam</button>
+              <button class="range-button" type="button" data-range="all">Semua</button>
+            </div>
+          </div>
+          <div class="chart-wrap">
+            <canvas id="history-chart" aria-label="Grafik riwayat kelembapan tanah, suhu, dan kelembapan udara" role="img"></canvas>
+            <p id="chart-message" class="chart-message">Memuat riwayat…</p>
+          </div>
+          <p class="chart-caption">Maksimal 200 catatan, disimpan ESP32 setiap 1 menit. Bagian garis yang terputus menandakan data tidak tersedia.</p>
+        </section>
+
+        <section id="control-section" class="card control-card" aria-labelledby="control-title">
+          <div class="section-heading">
+            <div>
+              <p class="eyebrow">KONTROL JARAK JAUH</p>
+              <h2 id="control-title">Atur penyiraman</h2>
+            </div>
+            <span id="control-lock" class="mini-badge">🔒 Perlu login</span>
+          </div>
+
+          <div class="control-grid">
+            <div class="control-group">
+              <label class="control-label">Mode operasi</label>
+              <div class="segmented-control" role="group" aria-label="Pilih mode operasi">
+                <button id="mode-auto" class="segment is-active" type="button" data-mode="auto" aria-pressed="true" disabled>
+                  <span aria-hidden="true">↻</span> Otomatis
+                </button>
+                <button id="mode-manual" class="segment" type="button" data-mode="manual" aria-pressed="false" disabled>
+                  <span aria-hidden="true">✦</span> Manual
+                </button>
+              </div>
+              <p class="control-help">Otomatis mengikuti ambang tanah. Manual menimpa histeresis.</p>
+            </div>
+
+            <div class="control-group">
+              <label class="control-label">Pompa manual</label>
+              <div class="pump-buttons" role="group" aria-label="Kontrol pompa manual">
+                <button id="pump-on" class="button button-pump-on" type="button" disabled>Nyalakan</button>
+                <button id="pump-off" class="button button-pump-off" type="button" disabled>Matikan</button>
+              </div>
+              <p class="control-help">Maksimal ON 10 menit; OFF otomatis jika cloud terputus 60 detik.</p>
+            </div>
+          </div>
+          <p id="control-feedback" class="control-feedback" role="status" aria-live="polite">
+            Masuk sebagai pemilik untuk membuka kontrol.
+          </p>
+        </section>
+      </div>
+    </main>
+
+    <footer class="site-footer">
+      <div class="container">
+        <span>🌿 Tumbuh — irigasi yang lebih hemat dan terukur.</span>
+        <span>ESP32 · Firebase Realtime Database</span>
+      </div>
+    </footer>
+
+    <dialog id="auth-dialog" class="modal" aria-labelledby="auth-title">
+      <form id="login-form" class="modal-content">
+        <button id="auth-close" class="modal-close" type="button" aria-label="Tutup">×</button>
+        <span class="modal-icon" aria-hidden="true">🌱</span>
+        <h2 id="auth-title">Masuk sebagai pemilik</h2>
+        <p>Gunakan email dan kata sandi yang dibuat di Firebase Authentication.</p>
+        <label for="email">Email</label>
+        <input id="email" name="email" type="email" autocomplete="username" inputmode="email" required placeholder="nama@contoh.com" />
+        <label for="password">Kata sandi</label>
+        <input id="password" name="password" type="password" autocomplete="current-password" minlength="6" required placeholder="••••••••" />
+        <p id="auth-error" class="form-error" role="alert" hidden></p>
+        <button id="login-submit" class="button button-primary button-full" type="submit">Masuk</button>
+        <small>Kata sandi hanya dikirim ke Firebase Authentication dan tidak disimpan oleh website.</small>
+      </form>
+    </dialog>
+
+    <dialog id="confirm-dialog" class="modal confirm-modal" aria-labelledby="confirm-title">
+      <div class="modal-content">
+        <span class="modal-icon" aria-hidden="true">💧</span>
+        <h2 id="confirm-title">Konfirmasi perintah</h2>
+        <p id="confirm-message"></p>
+        <div class="modal-actions">
+          <button id="confirm-cancel" class="button button-ghost" type="button">Batal</button>
+          <button id="confirm-accept" class="button button-primary" type="button">Ya, kirim</button>
+        </div>
+      </div>
+    </dialog>
+
+    <div id="toast-region" class="toast-region" aria-live="polite" aria-atomic="true"></div>
+  </body>
+</html>
