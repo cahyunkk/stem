@@ -269,7 +269,7 @@ Gunakan **Arduino IDE 2.x**. Versi berikut dipatok agar hasil build dapat direpr
 | JSON | **ArduinoJson** by Benoit Blanchon | **7.4.2** |
 | DHT | **DHT sensor library** by Adafruit | **1.4.6** |
 | Dependency DHT | **Adafruit Unified Sensor** | **1.1.14** |
-| LCD | **LiquidCrystal_I2C** by Frank de Brabander | **1.1.2** |
+| LCD | **LiquidCrystal_I2C** by Martin Kubovčík/Frank de Brabander | **2.0.0** |
 
 Langkah:
 
@@ -281,7 +281,7 @@ Langkah:
 
 2. Di **Tools → Board → Boards Manager**, cari `esp32`, pilih versi `3.3.12`, lalu install.
 3. Di **Sketch → Include Library → Manage Libraries**, install nama dan versi pada tabel. Jika IDE menawarkan dependency, izinkan.
-4. Jika ada library LCD lain dengan nama mirip, pilih library Frank de Brabander yang menyediakan class `LiquidCrystal_I2C`.
+4. Jika ada library LCD lain dengan nama mirip, pilih `LiquidCrystal_I2C` versi `2.0.0` (Martin Kubovčík/Frank de Brabander, `architectures=all`) yang menyediakan class `LiquidCrystal_I2C`.
 
 > Core 3.3.12 digunakan karena firmware memverifikasi sertifikat HTTPS melalui `useBuiltinCACertBundle()`. Jangan memakai `setInsecure()` pada konfigurasi ini.
 
